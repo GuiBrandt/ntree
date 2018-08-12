@@ -7,7 +7,7 @@
     Implementação de uma árvore n-ária genérica
 
     @author     Guilherme Guidotti Brandt
-    @version    0.1.0
+    @version    0.1.1
     @date       2018-08-12
 */
 template <unsigned int N, class T> class n_tree

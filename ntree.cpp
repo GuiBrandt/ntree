@@ -12,8 +12,6 @@ template<unsigned int N, class T> n_tree<N, T>::n_tree()
 
 template<unsigned int N, class T> n_tree<N, T>::~n_tree()
 {
-    return;
-
     for (int i = 0; i <= last_index; i++)
         delete info[i];
 
@@ -35,12 +33,7 @@ template<unsigned int N, class T> void n_tree<N, T>::insert(T data)
     int at = 0;
 
     if (!empty())
-    {
         for (; at <= last_index && *info[at] < data; at++);
-
-        /*if (at == last_index && data > *info[last_index])
-            at++;*/
-    }
 
     if (last_index < (int)N - 2)
     {
