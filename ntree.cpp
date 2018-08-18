@@ -11,11 +11,7 @@ int main(int argc, char** argv)
     t.insert(0.032);
 
     std::cout << t << std::endl;
-    std::cout << "Min: " << t.popleft() << std::endl;
-
-    std::cout << t << std::endl;
-    std::cout << "Min: " << t.popleft() << std::endl;
-
+    t.remove(0.5454);
     std::cout << t << std::endl;
 
     return 0;

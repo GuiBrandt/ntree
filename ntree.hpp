@@ -42,7 +42,7 @@ template <unsigned int N, class T> class n_tree
                 else if (info[i] > data)
                     end = i;
                 else
-                    break;
+                    return i;
             }
 
             return beg;
@@ -209,7 +209,7 @@ template <unsigned int N, class T> class n_tree
         T popleft() throw (const char*)
         {
             if (empty())
-                throw "Can't shift from an empty tree";
+                throw "Can't pop from an empty tree";
 
             // Se o primeiro ponteiro tem informação, o menor da árvore é o 
             // menor do primeiro ponteiro
@@ -254,7 +254,7 @@ template <unsigned int N, class T> class n_tree
             return max;
         }
 
-        /**
+        /**w
          * @brief Insere uma informação na árvore
          * 
          * @param data Dados a serem inseridos na árvore
@@ -289,6 +289,7 @@ template <unsigned int N, class T> class n_tree
         {
             int at = where(data);
 
+            // Para folhas, só remove do vetor e reloca os dados
             if (is_leaf())
             {
                 if (info[at] != data)
@@ -296,18 +297,82 @@ template <unsigned int N, class T> class n_tree
 
                 for (int i = at; i < last_index; i++)
                     info[i] = info[i + 1];
+
                 last_index--;
             }
-            else if (branches[at] != NULL && info[at] > data)
+
+            // Se a informação a ser removida é diferente da encontrada com a
+            // função `where`, então ela não está nesse nó. Tenta-se remover
+            // as informações nos nós subsequentes, caso eles existam.
+            else if (info[at] > data && branches[at] != NULL)
+            {
                 branches[at]->remove(data);
 
-            else if (branches[at + 1] != NULL && info[at] < data)
+                if (branches[at]->empty())
+                    delete_branch(at);
+            }
+            else if (info[at] < data && branches[at + 1] != NULL)
+            {
                 branches[at + 1]->remove(data);
+                
+                if (branches[at + 1]->empty())
+                    delete_branch(at + 1);
+            }
 
+            // Se a informação encontrada era igual à desejada, mas o nó não é
+            // uma folha, então usa-se um dos galhos adjacentes à informação 
+            // para obter alguma informação que possa substituí-la. No caso, a
+            // maior informação do nó à esquerda ou a menor informação do nó
+            // à direita. Se nenhum desses nós existir, desloca-se a informação
+            // do vetor até encontrar um.
+            else if (branches[at] != NULL)
+            {
+                info[at] = branches[at]->pop();
+
+                if (branches[at]->empty())
+                    delete_branch(at);
+            }
+            else if (branches[at + 1] != NULL)
+            {
+                info[at] = branches[at + 1]->popleft();
+
+                if (branches[at + 1]->empty())
+                    delete_branch(at + 1);
+            }
             else
             {
-                if (branches[at])
-                    info[at] = branches[at]->pop();
+                for (int i = 0; i < N; i++)
+                {
+                    if (branches[i] == NULL)
+                        continue;
+                    
+                    if (i < at)
+                    {
+                        for (int j = at; j > i; j--)
+                            info[j] = info[j - 1];
+
+                        info[i] = branches[i]->pop();
+                    }
+                    else if (i < N - 1)
+                    {
+                        for (int j = at; j < i; j++)
+                            info[j] = info[j + 1];
+
+                        info[i] = branches[i]->pop();
+                    }
+                    else
+                    {
+                        for (int j = at; j < N - 2; j++)
+                            info[j] = info[j + 1];
+
+                        info[N - 2] = branches[i]->popleft();
+                    }
+                    
+                    if (branches[i]->empty())
+                        delete_branch(i);
+
+                    break;
+                }
             }
         }
 
