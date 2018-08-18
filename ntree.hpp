@@ -13,10 +13,39 @@
 template <unsigned int N, class T> class n_tree
 {
     private:
-        T* info[N - 1];         //! Vetor de informações
+        T info[N - 1];          //! Vetor de informações
         int last_index;         //! Última posição ocupada no vetor de informações
 
         n_tree* branches[N];    //! Vetor de nós filhos
+
+        /**
+         * @brief Faz busca binária no vetor de informações da árvore
+         * 
+         * @param data Informação a ser procurada
+         * 
+         * @return O índice da informação no vetor ou o índice onde seria
+         * inserida para manter o vetor ordenado
+         */
+        int bsearch(const T& data)
+        {
+            int beg = 0,
+                end = last_index,
+                i = 0;
+
+            while (beg < end)
+            {
+                i = (beg + end) >> 1;
+                
+                if (info[i] < data)
+                    beg = i + 1;
+                else if (info[i] > data)
+                    end = i;
+                else
+                    break;
+            }
+
+            return beg;
+        }
 
     public:
         /**
@@ -35,9 +64,6 @@ template <unsigned int N, class T> class n_tree
          */
         ~n_tree()
         {
-            for (int i = 0; i <= last_index; i++)
-                delete info[i];
-
             if (last_index < N - 2)
                 return;
 
@@ -47,10 +73,21 @@ template <unsigned int N, class T> class n_tree
         }
 
         /**
+         * Determina se a árvore é uma folha
+         * 
+         * @return true se a árvore for uma folha
+         * @return false caso contrário
+         */
+        bool is_leaf()
+        {
+            return last_index < (int)N - 2;
+        }
+
+        /**
          * @brief Determina se a árvore está vazia
          * 
          * @return true se a árvore não tiver nenhum elemento ou nó filho
-         * @return false 
+         * @return false caso contrário
          */
         bool empty()
         {
@@ -64,17 +101,13 @@ template <unsigned int N, class T> class n_tree
          */
         void insert(const T& data) 
         {
-            int at = 0;
-
-            if (!empty())
-                for (; at <= last_index && *info[at] < data; at++);
-
-            if (last_index < (int)N - 2)
+            int at = bsearch(data);
+            if (is_leaf())
             {
                 for (int i = last_index; i >= at; i--)
                     info[i + 1] = info[i];
 
-                info[at] = new T(data);
+                info[at] = data;
                 last_index++;
             }
             else
@@ -83,6 +116,20 @@ template <unsigned int N, class T> class n_tree
                     branches[at] = new n_tree<N, T>();
 
                 branches[at]->insert(data);
+            }
+        }
+
+        /**
+         * @brief Exclui uma informação da árvore
+         * 
+         * @param data Dados a serem removidos
+         */
+        void remove(const T& data)
+        {
+            if (is_leaf())
+            {
+                int at = bsearch(data);
+                last_index--;
             }
         }
 
@@ -107,7 +154,7 @@ template <unsigned int N, class T> class n_tree
 
                 if (tree.branches[i])
                     out << *tree.branches[i] << "; ";
-                out << *tree.info[i];
+                out << tree.info[i];
             }
 
             if (tree.branches[N - 1])
