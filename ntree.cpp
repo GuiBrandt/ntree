@@ -9,7 +9,14 @@ int main(int argc, char** argv)
     t.insert(54.24);
     t.insert(0.5454);
     t.insert(0.032);
-    std::cout << t;
+
+    std::cout << t << std::endl;
+    std::cout << "Min: " << t.popleft() << std::endl;
+
+    std::cout << t << std::endl;
+    std::cout << "Min: " << t.popleft() << std::endl;
+
+    std::cout << t << std::endl;
 
     return 0;
 }

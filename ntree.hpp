@@ -17,19 +17,20 @@ template <unsigned int N, class T> class n_tree
         int last_index;         //! Última posição ocupada no vetor de informações
 
         n_tree* branches[N];    //! Vetor de nós filhos
+        int n_branches;         //! Quantidade de nós filhos que a árvore tem de fato
 
         /**
-         * @brief Faz busca binária no vetor de informações da árvore
+         * @brief Busca uma informação no vetor de informações da árvore
          * 
          * @param data Informação a ser procurada
          * 
-         * @return O índice da informação no vetor ou o índice onde seria
+         * @return int O índice da informação no vetor ou o índice onde seria
          * inserida para manter o vetor ordenado
          */
-        int bsearch(const T& data)
+        int where(const T& data)
         {
             int beg = 0,
-                end = last_index,
+                end = last_index + 1,
                 i = 0;
 
             while (beg < end)
@@ -47,6 +48,30 @@ template <unsigned int N, class T> class n_tree
             return beg;
         }
 
+        /**
+         * @brief Cria um nó na posição I do vetor de ponteiros
+         * 
+         * @param i Índice no vetor de ponteiros
+         */
+        void create_branch(int i)
+        {
+            branches[i] = new n_tree<N, T>();
+            n_branches++;
+        }
+
+        /**
+         * @brief Remove um nó da posição I do vetor de ponteiros
+         * 
+         * @param i Índice no vetor de ponteiros
+         */
+        void delete_branch(int i)
+        {
+            delete branches[i];
+
+            branches[i] = NULL;
+            n_branches--;
+        }
+
     public:
         /**
          * @brief Construtor
@@ -57,6 +82,8 @@ template <unsigned int N, class T> class n_tree
 
             for (int i = 0; i < N; i++)
                 branches[i] = 0;
+
+            n_branches = 0;
         }
 
         /**
@@ -64,7 +91,7 @@ template <unsigned int N, class T> class n_tree
          */
         ~n_tree()
         {
-            if (last_index < N - 2)
+            if (is_leaf())
                 return;
 
             for (int i = 0; i < N; i++)
@@ -80,7 +107,7 @@ template <unsigned int N, class T> class n_tree
          */
         bool is_leaf()
         {
-            return last_index < (int)N - 2;
+            return n_branches == 0;
         }
 
         /**
@@ -95,14 +122,148 @@ template <unsigned int N, class T> class n_tree
         }
 
         /**
+         * @brief Obtém o menor valor da árvore
+         * 
+         * @return T Menor valor contido na árvore
+         */
+        T min() throw (const char*)
+        {
+            if (empty())
+                throw "Empty tree has no minimum value";
+                
+            if (branches[0])
+                return branches[0]->min();
+
+            return info[0];
+        }
+
+        /**
+         * @brief Obtém o maior valor da árvore
+         * 
+         * @return T Maior valor contido na árvore
+         */
+        T max() throw (const char*)
+        {
+            if (empty())
+                throw "Empty tree has no maximum value";
+
+            if (branches[N - 1])
+                return branches[N - 1]->max();
+
+            return info[last_index];
+        }
+        
+        /**
+         * @brief Remove o maior valor da árvore e retorna
+         * 
+         * @return T Maior valor contido na árvore
+         */
+        T pop() throw (const char*)
+        {
+            if (empty())
+                throw "Can't pop from an empty tree";
+
+            // Se o último ponteiro tem informação, o maior da árvore é o maior
+            // do último ponteiro
+            if (branches[N - 1])
+                return branches[N - 1]->pop();
+
+            // Se não, é a informação na última posição
+            T max = info[last_index];
+
+            // Se não for uma folha, precisa relocar tuuudo de novo, levando em
+            // conta os nós filhos
+            if (!is_leaf())
+            {
+                for (int i = N - 2; i >= 0; i--)
+                {
+                    if (i > 0)
+                        info[i] = info[i - 1];
+
+                    if (branches[i] == NULL)
+                        continue;
+
+                    info[i] = branches[i]->pop();
+
+                    // Se a árvore no ponteiro ficou vazia, pode deletar aquela
+                    // árvore
+                    if (branches[i]->empty())
+                        delete_branch(i);
+
+                    break;
+                }
+            }
+
+            // Se for uma folha, só diminui o índice e boa
+            else
+                last_index--;
+
+            return max;
+        }
+        
+        /**
+         * @brief Remove o menor valor da árvore e retorna
+         * 
+         * @return T Menor valor contido na árvore
+         */
+        T popleft() throw (const char*)
+        {
+            if (empty())
+                throw "Can't shift from an empty tree";
+
+            // Se o primeiro ponteiro tem informação, o menor da árvore é o 
+            // menor do primeiro ponteiro
+            if (branches[0])
+                return branches[0]->popleft();
+
+            // Se não, é a informação na primeira posição
+            T max = info[0];
+
+            // Se não for uma folha, precisa relocar tuuudo de novo, levando em
+            // conta os nós filhos
+            if (!is_leaf())
+            {
+                for (int i = 0; i < N; i++)
+                {
+                    if (i < N - 2)
+                        info[i] = info[i + 1];
+
+                    if (branches[i + 1] == NULL)
+                        continue;
+
+                    info[i] = branches[i + 1]->popleft();
+
+                    // Se a árvore no ponteiro ficou vazia, pode deletar aquela
+                    // árvore
+                    if (branches[i + 1]->empty())
+                        delete_branch(i + 1);
+
+                    break;
+                }
+            }
+
+            // Se for uma folha, é mais fácil relocar as coisas
+            else
+            {
+                for (int i = 0; i < last_index; i++)
+                    info[i] = info[i + 1];
+
+                last_index--;
+            }
+
+            return max;
+        }
+
+        /**
          * @brief Insere uma informação na árvore
          * 
          * @param data Dados a serem inseridos na árvore
          */
-        void insert(const T& data) 
+        void insert(const T& data)
         {
-            int at = bsearch(data);
-            if (is_leaf())
+            int at = where(data);
+
+            if (last_index < (int)N - 2)
             {
                 for (int i = last_index; i >= at; i--)
                     info[i + 1] = info[i];
@@ -112,8 +273,8 @@ template <unsigned int N, class T> class n_tree
             }
             else
             {
-                if (branches[at] == 0)
-                    branches[at] = new n_tree<N, T>();
+                if (!branches[at])
+                    create_branch(at);
 
                 branches[at]->insert(data);
             }
@@ -126,10 +287,27 @@ template <unsigned int N, class T> class n_tree
          */
         void remove(const T& data)
         {
+            int at = where(data);
+
             if (is_leaf())
             {
-                int at = bsearch(data);
+                if (info[at] != data)
+                    return;
+
+                for (int i = at; i < last_index; i++)
+                    info[i] = info[i + 1];
                 last_index--;
+            }
+            else if (branches[at] != NULL && info[at] > data)
+                branches[at]->remove(data);
+
+            else if (branches[at + 1] != NULL && info[at] < data)
+                branches[at + 1]->remove(data);
+
+            else
+            {
+                if (branches[at])
+                    info[at] = branches[at]->pop();
             }
         }
 
@@ -154,6 +332,7 @@ template <unsigned int N, class T> class n_tree
 
                 if (tree.branches[i])
                     out << *tree.branches[i] << "; ";
+
                 out << tree.info[i];
             }
 
