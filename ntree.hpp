@@ -72,7 +72,74 @@ template <unsigned int N, class T> class n_tree
             n_branches--;
         }
 
+        /**
+         * @brief Retorna o galho mais próximo a uma posição
+         *  
+         * @param i Posição no vetor de galhos
+         * @return int Posição do galho mais próximo à posição dada
+         */
+        int closest_branch(int i)
+        {
+            int l = i, r = i;
+            while (l > 0 && r < N)
+            {
+                if (branches[l] != NULL)
+                    return l;
+                if (branches[r] != NULL)
+                    return r;
+
+                if (l > 0)
+                    l--;
+                if (r < N)
+                    r++;
+            }
+            return -1;
+        }
+
+        /**
+         * @brief Remove uma informação do vetor e troca ela por outra, 
+         * mantendo a coerência da árvore
+         * 
+         * @param i Índice no vetor de informações
+         * 
+         * @return T informação que foi removida
+         */
+        T remove_info(int i)
+        {
+            T data = info[i];
+
+            if (is_leaf())
+            {
+                for (; i < last_index; i++)
+                    info[i] = info[i + 1];
+                last_index--;
+            }
+            else
+            {
+                int closest = closest_branch(i);
+
+                if (closest <= i)
+                {
+                    for (; i > closest; i--)
+                        info[i] = info[i] - 1;
+                    info[i] = branches[closest]->pop();
+                }
+                else
+                {
+                    for (; i < closest; i++)
+                        info[i] = info[i] + 1;
+                    info[i] = branches[closest]->popleft();
+                }
+
+                if (branches[closest]->empty())
+                    delete_branch(closest);
+            }
+
+            return data;
+        }
+
     public:
+
         /**
          * @brief Construtor
          */
@@ -84,6 +151,44 @@ template <unsigned int N, class T> class n_tree
                 branches[i] = 0;
 
             n_branches = 0;
+        }
+
+        /**
+         * @brief Construtor de cópia
+         * 
+         * @param model Objeto modelo
+         */
+        n_tree(const n_tree& model)
+        {
+            *this = model;
+        }
+
+        /**
+         * @brief Operador de cópia
+         * 
+         * @param model Objeto modelo
+         * @return n_tree& Cópia do objeto modelo
+         */
+        n_tree& operator=(const n_tree& model)
+        {
+            if (this == &model)
+                return *this;
+
+            last_index = model.last_index;
+
+            for (int i = 0; i <= last_index; i++)
+                info[i] = model.info[i];
+
+            for (int i = 0; i < N; i++)
+                if (branches[i])
+                    delete branches[i];
+
+            for (int i = 0; i < N; i++)
+                branches[i] = new n_tree<N, T>(model.branches[i]);
+
+            n_branches = model.n_branches;
+
+            return *this;
         }
 
         /**
@@ -163,42 +268,10 @@ template <unsigned int N, class T> class n_tree
             if (empty())
                 throw "Can't pop from an empty tree";
 
-            // Se o último ponteiro tem informação, o maior da árvore é o maior
-            // do último ponteiro
             if (branches[N - 1])
                 return branches[N - 1]->pop();
-
-            // Se não, é a informação na última posição
-            T max = info[last_index];
-
-            // Se não for uma folha, precisa relocar tuuudo de novo, levando em
-            // conta os nós filhos
-            if (!is_leaf())
-            {
-                for (int i = N - 2; i >= 0; i--)
-                {
-                    if (i > 0)
-                        info[i] = info[i - 1];
-
-                    if (branches[i] == NULL)
-                        continue;
-
-                    info[i] = branches[i]->pop();
-
-                    // Se a árvore no ponteiro ficou vazia, pode deletar aquela
-                    // árvore
-                    if (branches[i]->empty())
-                        delete_branch(i);
-
-                    break;
-                }
-            }
-
-            // Se for uma folha, só diminui o índice e boa
             else
-                last_index--;
-
-            return max;
+                return remove_info(last_index);
         }
         
         /**
@@ -211,47 +284,10 @@ template <unsigned int N, class T> class n_tree
             if (empty())
                 throw "Can't pop from an empty tree";
 
-            // Se o primeiro ponteiro tem informação, o menor da árvore é o 
-            // menor do primeiro ponteiro
             if (branches[0])
                 return branches[0]->popleft();
-
-            // Se não, é a informação na primeira posição
-            T max = info[0];
-
-            // Se não for uma folha, precisa relocar tuuudo de novo, levando em
-            // conta os nós filhos
-            if (!is_leaf())
-            {
-                for (int i = 0; i < N; i++)
-                {
-                    if (i < N - 2)
-                        info[i] = info[i + 1];
-
-                    if (branches[i + 1] == NULL)
-                        continue;
-
-                    info[i] = branches[i + 1]->popleft();
-
-                    // Se a árvore no ponteiro ficou vazia, pode deletar aquela
-                    // árvore
-                    if (branches[i + 1]->empty())
-                        delete_branch(i + 1);
-
-                    break;
-                }
-            }
-
-            // Se for uma folha, é mais fácil relocar as coisas
             else
-            {
-                for (int i = 0; i < last_index; i++)
-                    info[i] = info[i + 1];
-
-                last_index--;
-            }
-
-            return max;
+                return remove_info(0);
         }
 
         /**w
@@ -288,92 +324,7 @@ template <unsigned int N, class T> class n_tree
         void remove(const T& data)
         {
             int at = where(data);
-
-            // Para folhas, só remove do vetor e reloca os dados
-            if (is_leaf())
-            {
-                if (info[at] != data)
-                    return;
-
-                for (int i = at; i < last_index; i++)
-                    info[i] = info[i + 1];
-
-                last_index--;
-            }
-
-            // Se a informação a ser removida é diferente da encontrada com a
-            // função `where`, então ela não está nesse nó. Tenta-se remover
-            // as informações nos nós subsequentes, caso eles existam.
-            else if (info[at] > data && branches[at] != NULL)
-            {
-                branches[at]->remove(data);
-
-                if (branches[at]->empty())
-                    delete_branch(at);
-            }
-            else if (info[at] < data && branches[at + 1] != NULL)
-            {
-                branches[at + 1]->remove(data);
-                
-                if (branches[at + 1]->empty())
-                    delete_branch(at + 1);
-            }
-
-            // Se a informação encontrada era igual à desejada, mas o nó não é
-            // uma folha, então usa-se um dos galhos adjacentes à informação 
-            // para obter alguma informação que possa substituí-la. No caso, a
-            // maior informação do nó à esquerda ou a menor informação do nó
-            // à direita. Se nenhum desses nós existir, desloca-se a informação
-            // do vetor até encontrar um.
-            else if (branches[at] != NULL)
-            {
-                info[at] = branches[at]->pop();
-
-                if (branches[at]->empty())
-                    delete_branch(at);
-            }
-            else if (branches[at + 1] != NULL)
-            {
-                info[at] = branches[at + 1]->popleft();
-
-                if (branches[at + 1]->empty())
-                    delete_branch(at + 1);
-            }
-            else
-            {
-                for (int i = 0; i < N; i++)
-                {
-                    if (branches[i] == NULL)
-                        continue;
-                    
-                    if (i < at)
-                    {
-                        for (int j = at; j > i; j--)
-                            info[j] = info[j - 1];
-
-                        info[i] = branches[i]->pop();
-                    }
-                    else if (i < N - 1)
-                    {
-                        for (int j = at; j < i; j++)
-                            info[j] = info[j + 1];
-
-                        info[i] = branches[i]->pop();
-                    }
-                    else
-                    {
-                        for (int j = at; j < N - 2; j++)
-                            info[j] = info[j + 1];
-
-                        info[N - 2] = branches[i]->popleft();
-                    }
-                    
-                    if (branches[i]->empty())
-                        delete_branch(i);
-
-                    break;
-                }
-            }
+            remove_info(at);
         }
 
         /**
