@@ -1,3 +1,11 @@
+/**
+ * @brief Cabeçalho para a classe de árvore n-ária de busca
+ * 
+ * @file ntree.hpp
+ * @author Guilherme Brandt
+ * @date 2018-08-18
+ */
+
 #ifndef NTREE_HPP
 #define NTREE_HPP
 
@@ -11,7 +19,9 @@
  * @tparam T Tipo de valor armazenado na árvore
  */
 template < unsigned int N, class T > class n_tree {
+	
 	private:
+
 		T info[N - 1];      	//! Vetor de informações
 		int last_index;        	//! Última posição ocupada no vetor de informações
 
@@ -192,7 +202,7 @@ template < unsigned int N, class T > class n_tree {
 		}
 
 		/**
-		 * Determina se a árvore é uma folha
+		 * @brief Determina se a árvore é uma folha
 		 * 
 		 * @return true se a árvore for uma folha
 		 * @return false caso contrário
@@ -271,7 +281,7 @@ template < unsigned int N, class T > class n_tree {
 				return remove_info(0);
 		}
 
-		/**w
+		/**
 		 * @brief Insere uma informação na árvore
 		 * 
 		 * @param data Dados a serem inseridos na árvore
