@@ -121,13 +121,13 @@ template <unsigned int N, class T> class n_tree
                 if (closest <= i)
                 {
                     for (; i > closest; i--)
-                        info[i] = info[i] - 1;
+                        info[i] = info[i - 1];
                     info[i] = branches[closest]->pop();
                 }
                 else
                 {
-                    for (; i < closest; i++)
-                        info[i] = info[i] + 1;
+                    for (; i < closest - 1; i++)
+                        info[i] = info[i + 1];
                     info[i] = branches[closest]->popleft();
                 }
 
