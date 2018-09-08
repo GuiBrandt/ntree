@@ -10,8 +10,6 @@
 #define NTREE_HPP
 
 #include <iostream>
-#include <functional>
-#include <queue>
 
 /**
  * @brief Árvore n-ária de busca
@@ -37,7 +35,7 @@ private:
 	 * @return int O índice da informação no vetor ou o índice onde seria
 	 * inserida para manter o vetor ordenado
 	 */
-	int where(const T & data) {
+	int where(const T & data) const {
 		int beg = 0,
 			end = last_index + 1,
 			i = 0;
@@ -84,7 +82,7 @@ private:
 	 * @param i Posição no vetor de galhos
 	 * @return int Posição do galho mais próximo à posição dada
 	 */
-	int closest_branch(int i) {
+	int closest_branch(int i) const {
 		int l = i, r = i;
 		while (l > 0 && r < N) {
 			if (branches[l] != NULL)
@@ -206,7 +204,7 @@ public:
 	 * @return true se a árvore for uma folha
 	 * @return false caso contrário
 	 */
-	bool is_leaf() {
+	bool is_leaf() const {
 		return n_branches == 0;
 	}
 
@@ -216,7 +214,7 @@ public:
 	 * @return true se a árvore não tiver nenhum elemento ou nó filho
 	 * @return false caso contrário
 	 */
-	bool empty() {
+	bool empty() const {
 		return last_index < 0;
 	}
 
@@ -225,7 +223,7 @@ public:
 	 * 
 	 * @return T Menor valor contido na árvore
 	 */
-	T min() throw (const char*) {
+	T min() const {
 		if (empty())
 			throw "Empty tree has no minimum value";
 
@@ -240,7 +238,7 @@ public:
 	 * 
 	 * @return T Maior valor contido na árvore
 	 */
-	T max() throw (const char*) {
+	T max() const {
 		if (empty())
 			throw "Empty tree has no maximum value";
 
@@ -255,7 +253,7 @@ public:
 	 * 
 	 * @return T Maior valor contido na árvore
 	 */
-	T pop() throw (const char*) {
+	T pop() {
 		if (empty())
 			throw "Can't pop from an empty tree";
 
@@ -270,7 +268,7 @@ public:
 	 * 
 	 * @return T Menor valor contido na árvore
 	 */
-	T popleft() throw (const char*) {
+	T popleft() {
 		if (empty())
 			throw "Can't pop from an empty tree";
 
@@ -330,80 +328,6 @@ public:
 	}
 
 	/**
-	 * @brief Percorre a árvore em ordem
-	 * 
-	 * @param function Função a ser chamada como callback para cada elemento
-	 * percorrido
-	 */
-	void in_order(std::function<void(const T&)> function) const {
-		for (int i = 0; i <= last_index; i++) {
-			if (branches[i])
-				branches[i]->in_order(function);
-
-			function(info[i]);
-		}
-
-		if (branches[N - 1])
-			branches[N - 1]->in_order(function);
-	}
-	
-	/**
-	 * @brief Percorre a árvore em pré-ordem
-	 * 
-	 * @param function Função a ser chamada como callback para cada elemento
-	 * percorrido
-	 */
-	void pre_order(std::function<void(const T&)> function) const {
-		for (int i = 0; i <= last_index; i++)
-			function(info[i]);
-		
-		for (int i = 0; i <= N - 1; i++)
-			if (branches[i])
-				branches[i]->pre_order(function);
-	}
-	
-	/**
-	 * @brief Percorre a árvore em pós-ordem
-	 * 
-	 * @param function Função a ser chamada como callback para cada elemento
-	 * percorrido
-	 */
-	void post_order(std::function<void(const T&)> function) const {
-		for (int i = 0; i <= N - 1; i++)
-			if (branches[i])
-				branches[i]->post_order(function);
-
-		for (int i = 0; i <= last_index; i++)
-			function(info[i]);
-	}
-
-	/**
-	 * @brief Percorre a árvore por nível
-	 * 
-	 * @param function Função a ser chamada como callback para cada elemento
-	 * percorrido
-	 */
-	void by_level(std::function<void(const T&)> function) const {
-		std::queue<const n_tree*> q;
-		q.push(this);
-
-		while (!q.empty()) {
-			const n_tree* current = q.front();
-			q.pop();
-			
-			for (int i = 0; i <= current->last_index; i++) {
-				function(current->info[i]);
-
-				if (current->branches[i])
-					q.push(current->branches[i]);
-			}
-
-			if (current->branches[N - 1])
-				q.push(current->branches[N - 1]);
-		}
-	}
-
-	/**
 	 * @brief Escreve uma árvore para uma stream de saída em ordem
 	 * 
 	 * @param out Stream de saída
@@ -414,9 +338,24 @@ public:
 		std::ostream & out,
 		const n_tree < N, T > & tree
 	) {
-		tree.in_order([&out](T info) -> void {
-			out << info << " ";
-		});
+		out << "( ";
+
+		for (int i = 0; i < N; i++) {
+			if (tree.branches[i])
+				out << *tree.branches[i] << ", ";
+
+			if (i <= tree.last_index) {
+				out << tree.info[i];
+
+				if (i != tree.last_index)
+					out << ",";
+
+				out << " ";
+			}
+		}
+
+		out << ")";
+
 		return out;
 	}
 };
