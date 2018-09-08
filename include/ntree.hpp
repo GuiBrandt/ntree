@@ -84,7 +84,7 @@ private:
 	 */
 	int closest_branch(int i) const {
 		int l = i, r = i;
-		while (l > 0 && r < N) {
+		while (l > 0 && r < (int)N) {
 			if (branches[l] != NULL)
 				return l;
 			if (branches[r] != NULL)
@@ -92,7 +92,7 @@ private:
 
 			if (l > 0)
 				l--;
-			if (r < N)
+			if (r < (int)N)
 				r++;
 		}
 		return -1;
@@ -144,7 +144,7 @@ public:
 	n_tree() {
 		last_index = -1;
 
-		for (int i = 0; i < N; i++)
+		for (int i = 0; i < (int)N; i++)
 			branches[i] = 0;
 
 		n_branches = 0;
@@ -174,16 +174,31 @@ public:
 		for (int i = 0; i <= last_index; i++)
 			info[i] = model.info[i];
 
-		for (int i = 0; i < N; i++)
+		for (int i = 0; i < (int)N; i++)
 			if (branches[i])
 				delete branches[i];
 
-		for (int i = 0; i < N; i++)
+		for (int i = 0; i < (int)N; i++)
 			branches[i] = new n_tree<N, T> (model.branches[i]);
 
 		n_branches = model.n_branches;
 
 		return *this;
+	}
+
+	/**
+	 * @brief Operador de swap
+	 * 
+	 * @param first Primeiro objeto
+	 * @param other Outro objeto
+	 */
+	friend void swap(n_tree<N, T> & first, n_tree<N, T> & other) {
+		using std::swap;
+
+		swap(first.info, other.info);
+		swap(first.branches, other.branches);
+		swap(first.last_index, other.last_index);
+		swap(first.n_branches, other.n_branches);
 	}
 
 	/**
@@ -193,7 +208,7 @@ public:
 		if (is_leaf())
 			return;
 
-		for (int i = 0; i < N; i++)
+		for (int i = 0; i < (int)N; i++)
 			if (branches[i])
 				delete branches[i];
 	}
@@ -284,7 +299,7 @@ public:
 	void clear() {
 		last_index = -1;
 
-		for (int i = 0; i < N; i++) {
+		for (int i = 0; i < (int)N; i++) {
 			if (branches[i])
 				delete branches[i];
 
@@ -303,6 +318,9 @@ public:
 		int at = where(data);
 
 		if (last_index < (int)N - 2) {
+			if (at <= last_index && info[at] == data)
+				throw "Repeated information";
+
 			for (int i = last_index; i >= at; i--)
 				info[i + 1] = info[i];
 
@@ -328,6 +346,22 @@ public:
 	}
 
 	/**
+	 * @brief Determina se uma informação existe na árvore
+	 * 
+	 * @param data Dados a serem procurados
+	 */
+	bool includes(const T & data) {
+		int at = where(data);
+		
+		if (at <= last_index && info[at] == data)
+			return true;
+		else if (branches[at])
+			return branches[at]->includes(data);
+		else
+			return false;
+	}
+
+	/**
 	 * @brief Escreve uma árvore para uma stream de saída em ordem
 	 * 
 	 * @param out Stream de saída
@@ -340,9 +374,15 @@ public:
 	) {
 		out << "( ";
 
-		for (int i = 0; i < N; i++) {
-			if (tree.branches[i])
-				out << *tree.branches[i] << ", ";
+		for (int i = 0; i < (int)N; i++) {
+			if (tree.branches[i]) {
+				out << *tree.branches[i];
+				
+				if (i != N - 1)
+					out << ",";
+
+				out << " ";
+			}
 
 			if (i <= tree.last_index) {
 				out << tree.info[i];
