@@ -13,6 +13,9 @@ all: tests
 tests: obj/ntree_tests.o
 	$(CC) $(LDFLAGS) $(LDLIBS) -o tests/all obj/ntree_tests.o
 
+win32: tests
+	ren tests\all test\all.exe
+
 obj/ntree_tests.o: tests/ntree_tests.cpp include/ntree.hpp
 	mkdir -p obj
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(LDLIBS) --std=$(STD) -c $< -o $@
