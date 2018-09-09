@@ -1,19 +1,24 @@
 .POSIX:
 .SUFFIXES:
+
 CC=g++
 STD=c++11
 CFLAGS=-W -O
-LDLIBS=-lm -lgtest
+
+GOOGLE_TEST_LIB = gtest
+LDLIBS=-lm -l$(GOOGLE_TEST_LIB) -lpthread
 INCLUDES=include
 
 all: tests
 tests: obj/ntree_tests.o
-	$(CC) $(LDFLAGS) $(LDLIBS) -o ntree_tests obj/ntree_tests.o
+	$(CC) $(LDFLAGS) $(LDLIBS) -o tests/all obj/ntree_tests.o
 
 obj/ntree_tests.o: tests/ntree_tests.cpp include/ntree.hpp
 	mkdir -p obj
 	$(CC) $(CFLAGS) -I$(INCLUDES) $(LDLIBS) --std=$(STD) -c $< -o $@
 
 clean:
-	rm -f ntree_tests
+	rm -f tests/all
 	rm -rf obj
+
+.PHONY: all clean

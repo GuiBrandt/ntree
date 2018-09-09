@@ -1,7 +1,7 @@
 #include <ntree.hpp>
 #include <gtest/gtest.h>
 
-TEST(Empty, IsEmpty) {
+TEST(Empty, Empty) {
     n_tree<3, int> t;
     
     ASSERT_TRUE(t.empty());
@@ -14,7 +14,7 @@ TEST(Empty, NotEmpty) {
     ASSERT_FALSE(t.empty());
 }
 
-TEST(Insert, NoBranching) {
+TEST(Insert, Leaf) {
     n_tree<5, double> t;
     t.insert(0.0);
     t.insert(1.2);
@@ -24,7 +24,7 @@ TEST(Insert, NoBranching) {
     ASSERT_TRUE(t.is_leaf());
 }
 
-TEST(Insert, Branching) {
+TEST(Insert, MultiLevel) {
     n_tree<5, double> t;
     t.insert(0.0);
     t.insert(1.2);
@@ -36,7 +36,7 @@ TEST(Insert, Branching) {
     ASSERT_FALSE(t.is_leaf());
 }
 
-TEST(Insert, RepeatedSingleLevel) {
+TEST(Insert, Repeated_Leaf) {
     n_tree<5, double> t;
     t.insert(0.0);
 
@@ -55,7 +55,7 @@ TEST(Insert, RepeatedMultiLevel) {
     ASSERT_THROW(t.insert(0.0), const char*);
 }
 
-TEST(Includes, HasDataSingleLevel) {
+TEST(Includes, HasData_Leaf) {
     n_tree<5, double> t;
     t.insert(0.0);
 
@@ -74,7 +74,7 @@ TEST(Includes, HasDataMultiLevel) {
     ASSERT_TRUE(t.includes(0.0));
 }
 
-TEST(Includes, DoesNotHaveDataSingleLevel) {
+TEST(Includes, DoesNotHaveData_Leaf) {
     n_tree<5, double> t;
     t.insert(0.0);
 
@@ -106,7 +106,7 @@ TEST(Minimum, NotEmpty) {
     ASSERT_NO_THROW(t.min());
 }
 
-TEST(Minimum, SingleLevel) {
+TEST(Minimum, _Leaf) {
     n_tree<5, float> t;
     t.insert(4);
     t.insert(2);
@@ -143,7 +143,7 @@ TEST(Maximum, NotEmpty) {
     ASSERT_NO_THROW(t.max());
 }
 
-TEST(Maximum, SingleLevel) {
+TEST(Maximum, _Leaf) {
     n_tree<5, float> t;
     t.insert(4);
     t.insert(2);
@@ -180,7 +180,7 @@ TEST(Popleft, NotEmpty) {
     ASSERT_NO_THROW(t.popleft());
 }
 
-TEST(Popleft, SingleLevel) {
+TEST(Popleft, _Leaf) {
     n_tree<5, float> t;
     t.insert(4);
     t.insert(2);
@@ -219,7 +219,7 @@ TEST(Pop, NotEmpty) {
     ASSERT_NO_THROW(t.pop());
 }
 
-TEST(Pop, SingleLevel) {
+TEST(Pop, _Leaf) {
     n_tree<5, float> t;
     t.insert(4);
     t.insert(2);
@@ -245,10 +245,60 @@ TEST(Pop, MultiLevel) {
     ASSERT_FALSE(t.includes(8));
 }
 
+TEST(Remove, Empty) {
+    n_tree<6, double> t;
+    
+    ASSERT_THROW(t.remove(7), const char*);
+}
+
+TEST(Remove, HasInfo_Leaf) {
+    n_tree<6, double> t;
+    t.insert(1.0);
+    t.insert(2.0);
+    t.insert(3.0);
+    
+    ASSERT_NO_THROW(t.remove(3.0));
+    ASSERT_FALSE(t.includes(3.0));
+}
+
+TEST(Remove, HasInfoMultiLevel) {
+    n_tree<6, double> t;
+    t.insert(1.0);
+    t.insert(2.0);
+    t.insert(5.0);
+    t.insert(7.0);
+    t.insert(4.0);
+    t.insert(6.0);
+    t.insert(3.0);
+    
+    ASSERT_NO_THROW(t.remove(3.0));
+    ASSERT_FALSE(t.includes(3.0));
+}
+
+TEST(Remove, DoesNotHaveInfo_Leaf) {
+    n_tree<6, double> t;
+    t.insert(1.0);
+    t.insert(2.0);
+    t.insert(3.0);
+    
+    ASSERT_THROW(t.remove(10.0), const char*);
+}
+
+TEST(Remove, DoesNotHaveInfoMultiLevel) {
+    n_tree<6, double> t;
+    t.insert(1.0);
+    t.insert(2.0);
+    t.insert(5.0);
+    t.insert(7.0);
+    t.insert(4.0);
+    t.insert(6.0);
+    t.insert(3.0);
+    
+    ASSERT_THROW(t.remove(10.0), const char*);
+}
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     
     return RUN_ALL_TESTS();
-
-    return 0;
 }

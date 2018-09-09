@@ -342,7 +342,13 @@ public:
 	 */
 	void remove(const T & data) {
 		int at = where(data);
-		remove_info(at);
+
+		if (at > last_index)
+			throw "Information not found";
+		else if (info[at] == data)
+			remove_info(at);
+		else
+			branches[at]->remove(data);
 	}
 
 	/**
