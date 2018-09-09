@@ -1,27 +1,26 @@
 .POSIX:
 .SUFFIXES:
 
-CC=g++
-STD=c++11
-CFLAGS=-W -O
-
+CXXFLAGS=--std=c++11 -W -O
 GOOGLE_TEST_LIB = gtest
 LDLIBS=-lm -l$(GOOGLE_TEST_LIB) -lpthread
 INCLUDES=include
 
 all: tests
-tests: obj/ntree_tests.o
-	$(CC) $(LDFLAGS) $(LDLIBS) -o tests/all obj/ntree_tests.o
-
+tests: ntree_tests avl_tree_tests
 win32: tests
 	ren tests\all test\all.exe
 
-obj/ntree_tests.o: tests/ntree_tests.cpp include/ntree.hpp
+%_tests: obj/%_tests.o
+	mkdir -p build/tests
+	$(CXX) $(LDFLAGS) $(LDLIBS) -o build/tests/$* $^
+
+obj/%_tests.o: tests/%_tests.cpp include/%.hpp
 	mkdir -p obj
-	$(CC) $(CFLAGS) -I$(INCLUDES) $(LDLIBS) --std=$(STD) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -I$(INCLUDES) $(LDLIBS) -c $< -o $@
 
 clean:
-	rm -f tests/all
-	rm -rf obj
+	$(RM) -r build
+	$(RM) -r obj
 
-.PHONY: all clean
+.PHONY: all tests clean

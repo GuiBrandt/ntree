@@ -18,7 +18,6 @@
  * @tparam T Tipo de valor armazenado na árvore
  */
 template < unsigned int N, class T > class n_tree {
-	
 private:
 
 	T info[N - 1];      	//! Vetor de informações
@@ -179,7 +178,7 @@ public:
 				delete branches[i];
 
 		for (int i = 0; i < (int)N; i++)
-			branches[i] = new n_tree<N, T> (model.branches[i]);
+			branches[i] = new n_tree(model.branches[i]);
 
 		n_branches = model.n_branches;
 
@@ -192,7 +191,7 @@ public:
 	 * @param first Primeiro objeto
 	 * @param other Outro objeto
 	 */
-	friend void swap(n_tree<N, T> & first, n_tree<N, T> & other) {
+	friend void swap(n_tree & first, n_tree & other) {
 		using std::swap;
 
 		swap(first.info, other.info);
@@ -297,16 +296,8 @@ public:
 	 * @brief Remove todas as informações da árvore
 	 */
 	void clear() {
-		last_index = -1;
-
-		for (int i = 0; i < (int)N; i++) {
-			if (branches[i])
-				delete branches[i];
-
-			branches[i] = 0;
-		}
-
-		n_branches = 0;
+		~n_tree();
+		n_tree();
 	}
 
 	/**
@@ -314,7 +305,7 @@ public:
 	 * 
 	 * @param data Dados a serem inseridos na árvore
 	 */
-	void insert(const T & data) {
+	void insert(T data) {
 		int at = where(data);
 
 		if (last_index < (int)N - 2) {
