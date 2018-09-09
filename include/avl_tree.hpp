@@ -35,36 +35,24 @@ private:
 	 * @brief Rotação à esquerda
 	 */
 	void rotate_left() {
-		avl_tree * aux = this->right;
+		avl_tree* aux = this->right;
 
-		if (aux->left) {
-			swap(*(this->right), *(aux->left));
-			delete aux->left;
-		} else
-			this->right = nullptr;
-
-		aux->left = new avl_tree();
-		swap(*(aux->left), *this);
+		this->right = aux->left;
 
 		swap(*this, *aux);
+		this->left = aux;
 	}
 
 	/**
 	 * @brief Rotação à direita
 	 */
 	void rotate_right() {
-		avl_tree * aux = this->left;
+		avl_tree* aux = this->left;
 
-		if (aux->right) {
-			swap(*(this->left), *(aux->right));
-			delete aux->right;
-		} else
-			this->left = nullptr;
-
-		aux->right = new avl_tree();
-		swap(*(aux->right), *this);
-
+		this->left = aux->right;
+		
 		swap(*this, *aux);
+		this->right = aux;
 	}
 
 	/**
@@ -333,7 +321,10 @@ public:
 	 * 
 	 * @param data Dados a serem procurados
 	 */
-	bool includes(const T & data) {		
+	bool includes(const T & data) {
+		if (empty())
+			return false;
+
 		if (*info == data)
 			return true;
 		else if (left && data < *info)
