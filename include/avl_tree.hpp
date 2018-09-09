@@ -1,9 +1,9 @@
 /**
  * @brief Cabeçalho para a classe de árvore AVL
  * 
- * @file ntree.hpp
+ * @file avl_tree.hpp
  * @author Guilherme Brandt
- * @date 2018-08-18
+ * @date 2018-09-08
  */
 
 #ifndef AVL_TREE_HPP
@@ -35,9 +35,17 @@ private:
 	 * @brief Rotação à esquerda
 	 */
 	void rotate_left() {
-		avl_tree * aux = right;
-		right = aux->left;
-		aux->left = new avl_tree(*this);
+		avl_tree * aux = this->right;
+
+		if (aux->left) {
+			swap(*(this->right), *(aux->left));
+			delete aux->left;
+		} else
+			this->right = nullptr;
+
+		aux->left = new avl_tree();
+		swap(*(aux->left), *this);
+
 		swap(*this, *aux);
 	}
 
@@ -45,9 +53,17 @@ private:
 	 * @brief Rotação à direita
 	 */
 	void rotate_right() {
-		avl_tree *aux = left;
-		left = aux->right;
-		aux->right = new avl_tree(*this);
+		avl_tree * aux = this->left;
+
+		if (aux->right) {
+			swap(*(this->left), *(aux->right));
+			delete aux->right;
+		} else
+			this->left = nullptr;
+
+		aux->right = new avl_tree();
+		swap(*(aux->right), *this);
+
 		swap(*this, *aux);
 	}
 
@@ -329,4 +345,4 @@ public:
 	}
 };
 
-#endif // NTREE_HPP
+#endif // AVL_TREE_HPP
