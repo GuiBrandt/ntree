@@ -23,12 +23,19 @@ private:
 	avl_tree* right;
 
 	/**
-	 * @brief Fator de balanceamento
+	 * @brief Calcula o fator de balanceamento da árvore
 	 * 
 	 * @return int o fator de balanceamento do nó
 	 */
-	int balance_factor() {
+	int balance_factor() const {
 		return (right ? right->height() : 0) - (left ? left->height() : 0);
+	}
+
+	inline void delete_if_empty(avl_tree* & ptr) {
+		if (ptr->empty()) {
+			delete ptr;
+			ptr = nullptr;
+		}
 	}
 
 	/**
@@ -50,7 +57,7 @@ private:
 		avl_tree* aux = this->left;
 
 		this->left = aux->right;
-		
+
 		swap(*this, *aux);
 		this->right = aux;
 	}
@@ -74,7 +81,12 @@ private:
 		}
 	}
 
+	template <class ptrT> inline ptrT* clone_ptr(ptrT* ptr) {
+		return ptr ? new ptrT(*ptr) : nullptr;
+	}
+
 public:
+
 	/**
 	 * @brief Construtor
 	 */
@@ -117,20 +129,9 @@ public:
 
 		this->~avl_tree();
 
-		if (model.info)
-			info = new T(*(model.info));
-		else
-			info = nullptr;
-
-		if (model.left)
-			left = new avl_tree(*model.left);
-		else
-			left = nullptr;
-
-		if (model.right)
-			right = new avl_tree(*model.right);
-		else
-			right = nullptr;
+		info = clone_ptr(model.info);
+		left = clone_ptr(model.left);
+		right = clone_ptr(model.right);
 
 		return *this;
 	}
@@ -227,22 +228,14 @@ public:
 
 		if (right) {
 			T aux = right->pop();
-
-			if (right->empty()) {
-				delete right;
-				right = nullptr;
-			}
+			delete_if_empty(right);
 
 			rebalance();
 
 			return aux;
 		} else {
 			T aux = *info;
-
-			if (left)
-				info = new T(left->popleft());
-			else
-				info = nullptr;
+			info = left ? new T(left->popleft()) : nullptr;
 
 			rebalance();
 
@@ -261,22 +254,14 @@ public:
 
 		if (left) {
 			T aux = left->popleft();
-
-			if (left->empty()) {
-				delete left;
-				left = nullptr;
-			}
+			delete_if_empty(right);
 
 			rebalance();
 
 			return aux;
 		} else {
 			T aux = *info;
-
-			if (right)
-				info = new T(right->pop());
-			else
-				info = nullptr;
+			info = right ? new T(right->pop()) : nullptr;
 
 			rebalance();
 
@@ -300,20 +285,56 @@ public:
 	void insert(T data) {			
 		if (info == nullptr)
 			info = new T(data);
+
 		else if (data < *info) {
 			if (left == nullptr)
 				left = new avl_tree();
 
 			left->insert(data);
+
 		} else if (data > *info) {
 			if (right == nullptr)
 				right = new avl_tree();
 
 			right->insert(data);
+
 		} else
 			throw "Repeated information";
 
 		rebalance();
+	}
+
+	/**
+	 * @brief Remove uma informação da árvore
+	 * 
+	 * @param data Informação a ser removida
+	 */
+	void remove(const T & data) {
+		if (empty())
+			throw "Can't remove from empty tree";
+
+		if (*info == data) {
+			if (left) {
+				*info = left->pop();
+				delete_if_empty(left);
+
+			} else if (right) {
+				*info = right->popleft();
+				delete_if_empty(right);
+
+			} else
+				info = nullptr;
+
+		} else if (left && data < *info) {
+			left->remove(data);
+			delete_if_empty(left);
+
+		} else if (right && data > *info) {
+			right->remove(data);
+			delete_if_empty(right);
+
+		} else
+			throw "Information not found";
 	}
 	
 	/**
@@ -321,7 +342,7 @@ public:
 	 * 
 	 * @param data Dados a serem procurados
 	 */
-	bool includes(const T & data) {
+	bool includes(const T & data) const {
 		if (empty())
 			return false;
 

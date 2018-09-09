@@ -104,9 +104,10 @@ TEST(Minimum, NotEmpty) {
     t.insert(1);
 
     ASSERT_NO_THROW(t.min());
+    ASSERT_EQ(t.min(), 1.0);
 }
 
-TEST(Minimum, _Leaf) {
+TEST(Minimum, Leaf) {
     n_tree<5, float> t;
     t.insert(4);
     t.insert(2);
@@ -141,9 +142,10 @@ TEST(Maximum, NotEmpty) {
     t.insert(1);
 
     ASSERT_NO_THROW(t.max());
+    ASSERT_EQ(t.max(), 1.0);
 }
 
-TEST(Maximum, _Leaf) {
+TEST(Maximum, Leaf) {
     n_tree<5, float> t;
     t.insert(4);
     t.insert(2);
@@ -180,7 +182,7 @@ TEST(Popleft, NotEmpty) {
     ASSERT_NO_THROW(t.popleft());
 }
 
-TEST(Popleft, _Leaf) {
+TEST(Popleft, Leaf) {
     n_tree<5, float> t;
     t.insert(4);
     t.insert(2);
@@ -219,7 +221,7 @@ TEST(Pop, NotEmpty) {
     ASSERT_NO_THROW(t.pop());
 }
 
-TEST(Pop, _Leaf) {
+TEST(Pop, Leaf) {
     n_tree<5, float> t;
     t.insert(4);
     t.insert(2);
