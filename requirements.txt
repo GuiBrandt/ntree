@@ -1,1 +1,1 @@
-google/googletest
+gtest
