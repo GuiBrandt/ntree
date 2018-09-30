@@ -7,7 +7,7 @@ LDLIBS=-lm -l$(GOOGLE_TEST_LIB) -lpthread
 INCLUDES=include
 
 all: tests
-tests: ntree_tests avl_tree_tests
+tests: ntree_tests
 win32: tests
 	ren tests\all test\all.exe
 

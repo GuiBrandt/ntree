@@ -9,6 +9,7 @@
 #ifndef NTREE_HPP
 #define NTREE_HPP
 
+#include <functional>
 #include <iostream>
 
 /**
@@ -17,7 +18,11 @@
  * @tparam N Número de nós filhos por nó
  * @tparam T Tipo de valor armazenado na árvore
  */
-template < unsigned int N, class T > class n_tree {
+template <
+	unsigned int N,
+	class T, 
+	class Compare = std::less<T>
+> class n_tree {
 private:
 
 	T info[N - 1];      	//! Vetor de informações
@@ -25,7 +30,7 @@ private:
 
 	n_tree * branches[N];  	//! Vetor de nós filhos
 	int n_branches;        	//! Quantidade de nós filhos que a árvore tem de fato
-
+	
 	/**
 	 * @brief Busca uma informação no vetor de informações da árvore
 	 * 
@@ -35,6 +40,8 @@ private:
 	 * inserida para manter o vetor ordenado
 	 */
 	int where(const T & data) const {
+		Compare is_less;
+		
 		int beg = 0,
 			end = last_index + 1,
 			i = 0;
@@ -42,9 +49,9 @@ private:
 		while (beg < end) {
 			i = (beg + end) >> 1;
 
-			if (info[i] < data)
+			if (is_less(info[i], data))
 				beg = i + 1;
-			else if (info[i] > data)
+			else if (info[i] != data)
 				end = i;
 			else
 				return i;
